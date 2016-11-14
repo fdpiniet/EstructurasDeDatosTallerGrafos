@@ -301,7 +301,7 @@ var Grafos = (function() {
          */
         this.crearArco = function(origen, destino, direccionado) {
             if (origen === undefined || destino === undefined || !(origen instanceof Nodo) || !(destino instanceof Nodo)) {
-                throw new TypeError('Se requiere un Nodo origen y Nodo destino en Grao.crearArco.');
+                throw new TypeError('Se requiere un Nodo origen y Nodo destino en Grafo.crearArco.');
             } else if (direccionado !== undefined && direccionado.constructor !== Boolean) {
                 throw new TypeError('Direccionado debe ser undefined, true o false en Grafo.CrearArco.');
             }
@@ -421,6 +421,8 @@ var Grafos = (function() {
         /**
          * Elimina un objeto Arco del Grafo y de todos los Nodos involucrados
          * en este Arco sin importar la dirección.
+         *
+         * Si la operacion es exitosa, se regresa true. Si no, false.
          */
         this.eliminarArcoObjeto = function(arco) {
           var auxArco, auxNodo, iNodo; // iNodo por "indice de nodo"
@@ -455,9 +457,11 @@ var Grafos = (function() {
               // Por último, se retira el Arco del listado de Arcos.
               arcos.splice(i, 1);
 
-              return;
+              return true;
             }
           }
+
+          return false;
         };
 
         /**
@@ -906,7 +910,7 @@ var Grafos = (function() {
         };
 
         /**
-         * Regresa true si este Nodoodo es adyacente a otro Nodo.
+         * Regresa true si este Nodo es adyacente a otro Nodo.
          */
         this.adyacente = function(otro) {
             var i, j;

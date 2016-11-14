@@ -39,6 +39,7 @@ accionInsertarNodo.addEventListener("click", function() {
     imprimir("Nodo '" + valor + "' insertado exitosamente.");
   } else {
     imprimir("Error insertando Nodo. Nodo '" + valor +"' ya existe.");
+    return;
   }
 
   visualizar();
@@ -56,6 +57,7 @@ accionEliminarNodo.addEventListener("click", function() {
     imprimir("Nodo '" + valor + "' eliminado exitosamente.");
   } else {
     imprimir("Error eliminando Nodo. Nodo '" + valor + "' no existe.");
+    return;
   }
 
   visualizar();
@@ -94,6 +96,7 @@ accionInsertarArco.addEventListener("click", function() {
 
   if (resultado === undefined) {
     imprimir("Error insertando Arco. La inserción de este nuevo Arco crearía un conflicto con otros Arcos existentes.");
+    return;
   } else if (resultado === nuevoArco) {
     imprimir("Arco entre Nodos '" + origen + "' y '" + destino + "' insertado exitosamente.");
   } else {
@@ -104,7 +107,38 @@ accionInsertarArco.addEventListener("click", function() {
 });
 
 accionEliminarArco.addEventListener("click", function() {
+  var origen = entradaArcoNodo1.value.trim();
+  var destino = entradaArcoNodo2.value.trim();
+  var direccionado = entradaArcoDireccionado.checked;
 
+  var nodoOrigen;
+  var nodoDestino;
+
+  if (origen === undefined || origen === "") {
+    imprimir("Error eliminando Arco. Todo Arco debe tener un Nodo origen.");
+    return;
+  } else if (destino === undefined || destino === "") {
+    imprimir("Error eliminando Arco. Todo Arco debe tener un Nodo destino.");
+    return;
+  } else if ((nodoOrigen = grafo.getNodo(origen)) === undefined) {
+    imprimir("Error eliminando Arco. Nodo origen '" + origen + "' no existe.");
+    return;
+  } else if ((nodoDestino = grafo.getNodo(destino)) === undefined) {
+    imprimir("Error eliminando Arco. Nodo destino '" + destino + "' no existe.");
+    return;
+  } else if (nodoOrigen.comparar(nodoDestino)) {
+    imprimir("Error eliminando Arco. Nodo origen no puede ser Nodo destino en el mismo Arco.");
+    return;
+  }
+
+  if (grafo.eliminarArco(nodoOrigen, nodoDestino, direccionado)) {
+    imprimir("Arco entre Nodos '" + origen + "' y '" + destino + "' eliminado exitosamente.");
+  } else {
+    imprimir("Error eliminando Arco entre Nodos '" + origen + "' y '" + destino + "': Arco no existe.");
+    return;
+  }
+
+  visualizar();
 });
 
 accionLimpiar.addEventListener("click", function(){
