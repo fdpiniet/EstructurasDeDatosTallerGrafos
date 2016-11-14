@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Estructuras de Datos: Taller Grafos</title>
 
@@ -17,20 +17,52 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <link href="css/vis.min.css" rel="stylesheet" type="text/css" />
+
     <link href="css/main.css" rel="stylesheet">
   </head>
   <body>
-    <h1>Taller Grafos</h1>
+    <div class="container-fluid">
+      <div class="col-xs-3 contenedor-ui contenedor-formulario">
+        <h1 class="sr-only sr-only-focusable">Taller Grafos - Fabián David Pineda Nieto.</h1>
+        <h2>Entrada</h2>
 
-    <p>Salida:</p>
-    <pre><code id="stdout"></code></pre>
+        <p>Operaciones de <em>Nodo</em>:</p>
+        <form>
+          <input id="entradaValorNodo" class="widget-texto-centrado widget-ancho-completo" type="text" placeholder="Valor de Nodo" value="" />
+          <input id="accionInsertarNodo" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Insertar" />
+          <input id="accionEliminarNodo" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Eliminar" />
+        </form>
+
+        <p>Operaciones de <em>Arco</em>:</p>
+        <form>
+          <input id="entradaArcoNodo1" class="widget-texto-centrado widget-ancho-mitad" type="text" placeholder="Valor de Nodo origen" value="" />
+          <input id="entradaArcoNodo2" class="widget-texto-centrado widget-ancho-mitad" type="text" placeholder="Valor de Nodo destino" value="" />
+          <div class="widget-ancho-completo widget-div-margen-superior">
+            <input id="entradaArcoDireccionado" type="checkbox" /> <label for="entradaArcoDireccionado">Direccionado?</label>
+          </div>
+          <input id="accionInsertarArco" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Insertar" />
+          <input id="accionEliminarArco" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Eliminar" />
+        </form>
+      </div>
+      <div class="col-xs-3 contenedor-ui">
+        <h2>Salida</h2>
+
+        <p><a href="#" id="accionLimpiar">Limpiar</a> &nbsp; | &nbsp; <a href="#" id="accionDepurar">Depurar</a></p>
+        <pre><code id="stdout"></code></pre>
+      </div>
+      <div class="col-xs-6 contenedor-grafo">
+        <h2 class="sr-only sr-only-focusable">Visualización</h2>
+        <div id="grafo"></div>
+      </div>
+    </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/lib/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/lib/bootstrap.min.js"></script>
 
-    <!--<script src="js/lib/dracula.min.js"></script>-->
+    <script src="js/lib/vis.min.js"></script>
 
     <script src="js/grafos.js"></script>
     <script src="js/main.js"></script>

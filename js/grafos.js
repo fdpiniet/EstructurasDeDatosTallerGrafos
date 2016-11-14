@@ -332,10 +332,10 @@ var Grafos = (function() {
          * en sentido contrario. En estos casos, 'Y' no es agregado al Grafo
          * y es descartado, pero el Arco existente, 'Y', dejará de ser un
          * Arco direccionado y se convertirá en un Arco no direccionado. El
-         * valor de retorno de esta función es X, no 'Y'.
+         * valor de retorno de esta función es X.
          *
          * Si no se cumplen las anteriores condiciones, entonces 'Y' es agregado
-         * al Grafo y el valor de retorno de la función será X.
+         * al Grafo y el valor de retorno de la función será 'Y'.
          *
          * Nota: es imposible "convertir" un Arco existente no direccionado en
          * un Arco direccionado usando esta función. Si se busca hacer dicha
@@ -370,13 +370,13 @@ var Grafos = (function() {
                             // ser un Arco direccionado a ser un Arco no direccionado, y
                             // el nuevo Arco es descartado.
                             aux.convertirEnNoDireccionado();
-                            return aux;
+                            return aux; // Arco 'Y'
                         }
                     } else if (!arco.isDireccionado() && aux.isDireccionado()) {
                         // Si el Arco existente es direccionado y el nuevo no lo es,
                         // entonces el Arco existente pasa a ser no direccionado.
                         aux.convertirEnNoDireccionado();
-                        return aux;
+                        return aux; // Arco 'Y'
                     } else {
                         // Si no, entonces se está intentando agregar un Arco no
                         // direccionado cuando ya existe un Arco no direccionado entre
@@ -404,7 +404,7 @@ var Grafos = (function() {
               arco.getDestino().insertarArcoOrigen(arco);
             }
 
-            return arco;
+            return arco; // Arco 'X'
         };
 
         /**
@@ -463,14 +463,19 @@ var Grafos = (function() {
         /**
          * Elimina un Nodo del Grafo y todos los Arcos que lo involucran si
          * dicho nodo existe y hace parte del Grafo.
+         *
+         * Regresa true si un Nodo fue eliminado como resultado de esta
+         * operación. Regresa false en caso contrario.
          */
         this.eliminarNodo = function(nodo) {
-          var auxNodo = this.getNodo(nodo);
+          var auxNodo;
           var i;
 
-          if (auxNodo === undefined) {
-            // Nodo no existe o no fue encontrado en el Grafo. Nada que hacer.
-            return;
+          // Nodo no existe o no fue encontrado en el Grafo. Nada que hacer.
+          if (nodo === undefined) {
+            return false;
+          } else if ((auxNodo = this.getNodo(nodo)) === undefined) {
+            return false;
           }
 
           for (i = arcos.length - 1; i > -1; i--) {
@@ -478,6 +483,17 @@ var Grafos = (function() {
               this.eliminarArcoObjeto(arcos[i]);
             }
           }
+
+          for (i in nodos) {
+            // Algo ineficiente iterar sobre todos los nodos una vez más
+            // para obtener el índice del nodo que se busca remover...
+            if (nodos[i].comparar(nodo, true)) {
+              nodos.splice(i, 1);
+              break;
+            }
+          }
+
+          return true;
         };
 
         /** Regresa número de objetos Nodo en el Grafo. */
@@ -557,27 +573,27 @@ var Grafos = (function() {
             var salida = "";
             var i;
 
-            salida += "VACÍO?     " + (this.vacio() ? "Sí" : "No") + "\n";
-            salida += "NUM NODOS: " + this.numeroNodos() + "\n";
-            salida += "NUM ARCOS: " + this.numeroArcos() + "\n";
-            salida += "CONEXO?    " + (this.conexo() ? "Sí" : "No") + "\n";
-            salida += "DIGRAFO?   " + (this.digrafo() ? "Sí" : "No") + "\n";
+            salida += "Vacío?     " + (this.vacio() ? "Sí" : "No") + "\n";
+            salida += "Num Nodos: " + this.numeroNodos() + "\n";
+            salida += "Num Arcos: " + this.numeroArcos() + "\n";
+            salida += "Conexo?    " + (this.conexo() ? "Sí" : "No") + "\n";
+            salida += "Digrafo?   " + (this.digrafo() ? "Sí" : "No") + "\n";
 
-            salida += "\nNODOS:\n======\n";
+            salida += "\nNODOS:\n------\n";
 
             if (nodos.length > 0) {
                 for (i in nodos) {
-                    salida += nodos[i] + "\n";
+                    salida += "* " + nodos[i] + "\n";
                 }
             } else {
                 salida += "Ninguno.\n";
             }
 
-            salida += "\nARCOS:\n======\n";
+            salida += "\nARCOS:\n------\n";
 
             if (arcos.length > 0) {
                 for (i in arcos) {
-                    salida += arcos[i] + "\n";
+                    salida += "* " + arcos[i] + "\n";
                 }
             } else {
                 salida += "Ninguno.\n";
@@ -1113,7 +1129,11 @@ var Grafos = (function() {
 
         /** Regresa una representación de este objeto como un String. */
         this.toString = function() {
-            return (direccionado ? "Unidireccional" : "Bidireccional") + ": " + origen + " -> " + destino;
+          if (direccionado) {
+            return "Direccionado: " + origen + " ---> " + destino;
+          } else {
+            return "No-direccionado: " + origen + " <---> " + destino;
+          }
         };
 
         /* Arco: inicialización de "instancia":

@@ -1,0 +1,64 @@
+html, body, .container, .container-fluid, .contenedor-ui, .contenedor-grafo {
+  height: 100%;
+  background-color: #f2f2f2;
+}
+
+.contenedor-ui {
+  overflow-y: auto;
+}
+
+form, .contenedor-ui {
+  background-color: #f6f6f6;
+}
+
+.contenedor-formulario {
+  background-color: #f2f2f2;
+}
+
+.contenedor-grafo, pre {
+  background-color: #fff;
+}
+
+form {
+  display: block;
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.widget-no-margen {
+  margin: 0;
+  padding: 0;
+}
+
+.widget-inline-block {
+  display: inline;
+}
+
+.widget-texto-centrado {
+  text-align: center;
+}
+
+.widget-ancho-completo {
+  width: 96%;
+}
+
+.widget-ancho-mitad {
+  width: 47.5%;
+}
+
+.widget-ancho-tercio {
+  width: 31.66%;
+}
+
+.widget-ancho-cuarto {
+  width: 23.75%;
+}
+
+.widget-div-margen-superior {
+  margin-top: .5em;
+}
+
+#grafo {
+  width: 100%;
+  height: 100%;
+}
