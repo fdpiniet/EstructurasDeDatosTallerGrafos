@@ -36,13 +36,36 @@
 
         <p>Operaciones de <em>Arco</em>:</p>
         <form>
-          <input id="entradaArcoNodo1" class="widget-texto-centrado widget-ancho-mitad" type="text" placeholder="Valor de Nodo origen" value="" />
-          <input id="entradaArcoNodo2" class="widget-texto-centrado widget-ancho-mitad" type="text" placeholder="Valor de Nodo destino" value="" />
+          <input id="entradaArcoNodo1" class="widget-texto-centrado widget-ancho-tercio" type="text" placeholder="Nodo origen" value="" />
+          <input id="entradaArcoNodo2" class="widget-texto-centrado widget-ancho-tercio" type="text" placeholder="Nodo destino" value="" />
+          <input id="entradaArcoPeso" class="widget-texto-centrado widget-ancho-tercio" type="text" placeholder="Peso" value="" />
           <div class="widget-ancho-completo widget-div-margen-superior">
             <input id="entradaArcoDireccionado" type="checkbox" /> <label for="entradaArcoDireccionado">Direccionado?</label>
           </div>
           <input id="accionInsertarArco" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Insertar" />
           <input id="accionEliminarArco" class="widget-no-margen widget-inline-block widget-ancho-mitad" type="button" value="Eliminar" />
+        </form>
+
+        <p>Operaciones de <em>Grafo</em>:</p>
+        <form>
+          <input id="accionEliminarGrafo" class="widget-no-margen widget-inline-block widget-ancho-completo" type="button" value="Eliminar" />
+        </form>
+
+        <p>Operaciones de <em>visualización</em>:</p>
+        <form>
+          <div class="widget-ancho-completo widget-div-margen-superior">
+            <input id="entradaDibujarNombresNodos" type="checkbox" checked="checked" /> <label for="entradaDibujarNombresNodos">Valores de nodos?</label>
+          </div>
+          <div class="widget-ancho-completo widget-div-margen-superior">
+            <input id="entradaDibujarArcos" type="checkbox" checked="checked" /> <label for="entradaDibujarArcos">Dibujar arcos?</label>
+          </div>
+          <div class="widget-ancho-completo widget-div-margen-superior">
+            <input id="entradaDibujarPesoArcos" type="checkbox" checked="checked" /> <label for="entradaDibujarPesoArcos">Peso de arcos?</label>
+          </div>
+          <div class="widget-ancho-completo widget-div-margen-superior">
+            <input id="entradaDibujarFlechasArcos" type="checkbox" checked="checked" /> <label for="entradaDibujarFlechasArcos">Dibujar flechas?</label>
+          </div>
+          <input id="accionRedibujar" class="widget-no-margen widget-inline-block widget-ancho-completo" type="button" value="Redibujar" />
         </form>
       </div>
       <div class="col-xs-3 contenedor-ui">

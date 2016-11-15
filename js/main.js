@@ -1,6 +1,6 @@
 "use strict";
 
-var grafo = new Grafos.Grafo();
+var grafo = new Grafos.GrafoPonderado();
 var visualizacion;
 
 var stdout = window.document.getElementById("stdout");
@@ -18,11 +18,18 @@ var entradaValorNodo = window.document.getElementById("entradaValorNodo");
 var entradaArcoNodo1 = window.document.getElementById("entradaArcoNodo1");
 var entradaArcoNodo2 = window.document.getElementById("entradaArcoNodo2");
 var entradaArcoDireccionado = window.document.getElementById("entradaArcoDireccionado");
+var entradaArcoPeso = window.document.getElementById("entradaArcoPeso");
+var entradaDibujarPesoArcos = window.document.getElementById("entradaDibujarPesoArcos");
+var entradaDibujarNombresNodos = window.document.getElementById("entradaDibujarNombresNodos");
+var entradaDibujarArcos = window.document.getElementById("entradaDibujarArcos");
+var entradaDibujarFlechasArcos = window.document.getElementById("entradaDibujarFlechasArcos");
 
 var accionInsertarNodo = window.document.getElementById("accionInsertarNodo");
 var accionEliminarNodo = window.document.getElementById("accionEliminarNodo");
 var accionInsertarArco = window.document.getElementById("accionInsertarArco");
 var accionEliminarArco = window.document.getElementById("accionEliminarArco");
+var accionEliminarGrafo = window.document.getElementById("accionEliminarGrafo");
+var accionRedibujar = window.document.getElementById("accionRedibujar");
 
 var accionLimpiar = window.document.getElementById("accionLimpiar");
 var accionDepurar = window.document.getElementById("accionDepurar");
@@ -67,6 +74,8 @@ accionInsertarArco.addEventListener("click", function() {
   var origen = entradaArcoNodo1.value.trim();
   var destino = entradaArcoNodo2.value.trim();
   var direccionado = entradaArcoDireccionado.checked;
+  var peso = entradaArcoPeso.value.trim();
+
 
   var nodoOrigen;
   var nodoDestino;
@@ -80,6 +89,9 @@ accionInsertarArco.addEventListener("click", function() {
   } else if (destino === undefined || destino === "") {
     imprimir("Error insertando Arco. Todo Arco debe tener un Nodo destino.");
     return;
+  } else if (peso === undefined || peso === "" || Number.isNaN(peso = Number(entradaArcoPeso.value)) || !Number.isFinite(peso) || peso < 0) {
+    imprimir("Error insertando Arco. Todo Arco debe tener un peso numérico, finito y no negativo.");
+    return;
   } else if ((nodoOrigen = grafo.getNodo(origen)) === undefined) {
     imprimir("Error insertando Arco. Nodo origen '" + origen + "' no existe.");
     return;
@@ -91,8 +103,8 @@ accionInsertarArco.addEventListener("click", function() {
     return;
   }
 
-  nuevoArco = grafo.crearArco(nodoOrigen, nodoDestino, direccionado);
-  resultado = grafo.insertarArcoObjeto(nuevoArco);
+  nuevoArco = grafo.crearArcoPonderado(nodoOrigen, nodoDestino, direccionado, peso);
+  resultado = grafo.insertarArcoPonderadoObjeto(nuevoArco);
 
   if (resultado === undefined) {
     imprimir("Error insertando Arco. La inserción de este nuevo Arco crearía un conflicto con otros Arcos existentes.");
@@ -131,13 +143,28 @@ accionEliminarArco.addEventListener("click", function() {
     return;
   }
 
-  if (grafo.eliminarArco(nodoOrigen, nodoDestino, direccionado)) {
+  if (grafo.eliminarArcoPonderado(nodoOrigen, nodoDestino, direccionado, 0)) {
     imprimir("Arco entre Nodos '" + origen + "' y '" + destino + "' eliminado exitosamente.");
   } else {
     imprimir("Error eliminando Arco entre Nodos '" + origen + "' y '" + destino + "': Arco no existe.");
     return;
   }
 
+  visualizar();
+});
+
+accionEliminarGrafo.addEventListener("click", function(){
+  if (grafo === undefined || grafo.vacio()) {
+    imprimir("Error. No se puede eliminar Grafo inexistente o vacío.");
+  } else if (window.confirm("Proceder a eliminar el Grafo?\nEsta operación es irreversible.")) {
+    grafo = new Grafos.GrafoPonderado();
+    imprimir("Grafo eliminado.\nNuevo Grafo creado exitosamente.");
+    visualizar();
+  }
+});
+
+accionRedibujar.addEventListener("click", function(){
+  imprimir("Grafo redibujado exitosamente.");
   visualizar();
 });
 
@@ -157,6 +184,11 @@ var visualizar = function() {
   var canvas = window.document.getElementById("grafo");
   var contenedorCanvas = canvas.parentNode;
 
+  var dibujarNombresNodos = entradaDibujarNombresNodos.checked;
+  var dibujarArcos = entradaDibujarArcos.checked;
+  var dibujarPesoArcos = entradaDibujarPesoArcos.checked;
+  var dibujarFlechasArcos = entradaDibujarFlechasArcos.checked;
+
   var nodos, n, visNodos;
   var arcos, a, visArcos;
   var visDatos;
@@ -172,20 +204,29 @@ var visualizar = function() {
 
   if (grafo === undefined || grafo.vacio()) {
     return;
-  } else {
-    nodos = grafo.getNodos();
-    arcos = grafo.getArcos();
-    visNodos = new vis.DataSet();
-    visArcos = new vis.DataSet();
+  }
 
-    for (n in nodos) {
+  nodos = grafo.getNodos();
+  arcos = grafo.getArcos();
+  visNodos = new vis.DataSet();
+  visArcos = new vis.DataSet();
+
+  for (n in nodos) {
+    if (dibujarNombresNodos) {
       visNodos.add({
         "id": nodos[n].getValor(),
         "text": nodos[n].getValor(),
         "label": nodos[n].getValor()
       });
+    } else {
+      visNodos.add({
+        "id": nodos[n].getValor(),
+        "text": nodos[n].getValor()
+      });
     }
+  }
 
+  if (dibujarArcos) {
     for (a in arcos) {
       if (arcos[a].isDireccionado()) {
         visArcos.add({
@@ -193,9 +234,11 @@ var visualizar = function() {
           "to": arcos[a].getDestino().getValor(),
           "arrows": {
             "to": {
-              "enabled": true
+              "enabled": dibujarFlechasArcos
             }
-          }
+          },
+          "label": dibujarPesoArcos ? arcos[a].getPeso() : undefined,
+          "value": dibujarPesoArcos ? arcos[a].getPeso() : undefined
         });
       } else {
         visArcos.add({
@@ -203,23 +246,33 @@ var visualizar = function() {
           "to": arcos[a].getOrigen().getValor(),
           "arrows": {
             "to": {
-              "enabled": true
+              "enabled": dibujarFlechasArcos
             },
             "from": {
-              "enabled": true
+              "enabled": dibujarFlechasArcos
             }
-          }
+          },
+          "label": dibujarPesoArcos ? arcos[a].getPeso() : undefined,
+          "value": dibujarPesoArcos ? arcos[a].getPeso() : undefined
         });
       }
     }
-
-    visDatos = {
-      "nodes": visNodos,
-      "edges": visArcos
-    };
-
-    visualizacion = new vis.Network(canvas, visDatos, {
-      "locale": "es"
-    });
   }
+
+  visDatos = {
+    "nodes": visNodos,
+    "edges": visArcos
+  };
+
+  visualizacion = new vis.Network(canvas, visDatos, {
+    "locale": "es",
+    "edges": {
+      "scaling": {
+        "max": 4,
+        "label": {
+          "enabled": false
+        }
+      }
+    }
+  });
 };

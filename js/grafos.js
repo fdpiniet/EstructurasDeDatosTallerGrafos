@@ -52,8 +52,7 @@ var Grafos = (function() {
      *
      * En adición a la creación de un Grafo, de sus objetos Nodo y de sus
      * respectivos objetos Arco, Grafo contiene vários métodos que facilitan el
-     * manejo de los mismos objetos que componen el Grafo, incluyendo
-     * implementaciones de algoritmos comúnmente usados para recorrer grafos.
+     * manejo de los mismos objetos que componen el Grafo.
      *
      * Existe una variante de este objeto llamada GrafoPonderado que usa
      * objetos ArcoPonderado en lugar de objetos Arco. Tratándose de
@@ -665,20 +664,103 @@ var Grafos = (function() {
         /**
          * Asigna (y sobreescribe) arreglo de objetos ArcoPonderado a este
          * GrafoPonderado. Lanza TypeError si algun Arco no es ArcoPonderado.
-
+         *
          * Usar con cuidado.
          */
+        this._Grafo_setArcos = this.setArcos;
         this.setArcos = function(valor) {
             var i;
 
             for (i in valor) {
                 if (valor[i] !== undefined && !ArcoPonderado.esArcoPonderado(valor[i])) {
-                    throw new TypeError('GrafoPonderado.setArcos(valor) sólo acepta arcos de tipo ArcoPonderado.');
+                    throw new TypeError('GrafoPonderado.setArcos sólo acepta arcos de tipo ArcoPonderado.');
                 }
             }
 
-            arcos = valor;
+            this._Grafo_setArcos(valor);
         };
+
+        /**
+         * Alias de setArcos.
+         */
+        this.setArcosPonderados = this.setArcos;
+
+        /**
+         * Crea un nuevo ArcoPonderado sin agregarlo al GrafoPonderado.
+         *
+         * Funciona de la misma manera que la implementación de este método
+         * en el objeto Grafo, pero sólo crea objetos ArcoPonderado con un peso.
+         * Es un error si se intenta crear un ArcoPonderado con un peso
+         * no-numérico, infinito o menor que 0.
+         */
+        this.crearArco = function(origen, destino, direccionado, peso) {
+            return new ArcoPonderado(origen, destino, direccionado, peso);
+        };
+
+        /**
+         * Alias de crearArco. Crea un ArcoPonderado sin agregarlo
+         * al GrafoPonderado.
+         */
+        this.crearArcoPonderado = this.crearArco;
+
+        /**
+         * Inserta un nuevo ArcoPonderado en el Grafo si no existe.
+         *
+         * Funciona igual que el método con el mismo nombre en su "objeto
+         * padre" (Grafo), pero sólo trabaja con objetos ArcoPonderado.
+         */
+        this.insertarArco = function(origen, destino, direccionado, peso) {
+            return this.insertarArcoPonderadoObjeto(this.crearArcoPonderado(origen, destino, direccionado, peso));
+        };
+
+        /**
+         * Alias de insertarArco
+         */
+        this.insertarArcoPonderado = this.insertarArco;
+
+        /**
+         * Inserta un (objeto) ArcoPonderado en el GrafoPonderado si no existe.
+         *
+         * Funciona cómo el método con el mismo nombre de su "super-objeto"
+         * Grafo, sólo que trabaja exclusivamente con objetos ArcoPonderado.
+         */
+        this._Grafo_insertarArcoObjeto = this.insertarArcoObjeto;
+        this.insertarArcoObjeto = function(arco) {
+            if (!ArcoPonderado.esArcoPonderado(arco)) {
+              return undefined;
+            }
+
+            return this._Grafo_insertarArcoObjeto(arco); // Arco 'X'
+        };
+
+        /**
+         * Alias de insertarArcoObjeto.
+         */
+        this.insertarArcoPonderadoObjeto = this.insertarArcoObjeto;
+
+        /**
+         * Elimina un objeto ArcoPonderado del GrafoPonderado.
+         *
+         * Funciona igual que la versión de su super-objeto, pero sólo
+         * trabaja con objetos ArcoPonderado.
+         *
+         * Dirección y peso son ignorados, pero deben ser valores válidos.
+         * direccionado puede ser undefined, true o false. Peso puede ser
+         * cualquier número válido, finito y no negativo.
+         */
+        this.eliminarArco = function(origen, destino, direccionado, peso) {
+          return this.eliminarArcoPonderadoObjeto(this.crearArcoPonderado(origen, destino, direccionado, peso));
+        };
+
+        /**
+         * Alias de eliminarArco.
+         */
+        this.eliminarArcoPonderado = this.eliminarArco;
+
+        /**
+         * Alias de eliminarArcoObjeto.
+         */
+        this.eliminarArcoPonderadoObjeto = this.eliminarArcoObjeto;
 
         /* GrafoPonderado: inicialización de "instancia":
          * ----------------------------------------------
@@ -1179,16 +1261,19 @@ var Grafos = (function() {
      * el ArcoPonderado será considerado "no direccionado" por defecto. Esto
      * puede ser cambiado en cualquier momento.
      */
-    var ArcoPonderado = function(nodoOrigen, nodoDestino, pesoArco, esDireccionado) {
-        if (pesoArco === undefined || !Number.isFinite(pesoArco)) {
-            throw new TypeError('El parámetro "pesoArco" de ArcoPonderado es obligatorio y debe ser un número real, finito.');
-        }
-
+    var ArcoPonderado = function(nodoOrigen, nodoDestino, esDireccionado, pesoArco) {
         /*
          * ArcoPonderado: constructor de "padre":
          * --------------------------------------
          */
         Arco.call(this, nodoOrigen, nodoDestino, esDireccionado);
+
+        // Validación de parámetros de constructor de este objeto hijo:
+        var _pesoArco = Number(pesoArco);
+
+        if (Number.isNaN(_pesoArco) || !Number.isFinite(_pesoArco) || _pesoArco < 0) {
+            throw new TypeError('El parámetro "pesoArco" de ArcoPonderado es obligatorio y debe ser un número real, finito y no negativo.');
+        }
 
         /* ArcoPonderado: variables "privadas" de "instancia":
          * ---------------------------------------------------
@@ -1213,13 +1298,18 @@ var Grafos = (function() {
 
         /** Regresa una representación de este objeto como un String. */
         this.toString = function() {
-            return "ArcoPonderado.toString(" + ObjetoBaseGrafos.prototype.toString.call(this) + ") llamado.";
+          if (this.isDireccionado()) {
+            return "Direccionado: " + this.getOrigen() + " ---> " + this.getDestino() + "; Peso: " + peso;
+          } else {
+            return "No-direccionado: " + this.getOrigen() + " <---> " + this.getDestino() + "; Peso: " + peso;
+          }
         };
 
         /* ArcoPonderado: inicialización de "instancia":
          * ---------------------------------------------
          */
-        peso = pesoArco;
+        peso = _pesoArco;
+        _pesoArco = undefined;
     };
 
     /*

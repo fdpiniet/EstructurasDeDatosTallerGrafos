@@ -7,7 +7,7 @@ html, body, .container, .container-fluid, .contenedor-ui, .contenedor-grafo {
   overflow-y: auto;
 }
 
-form, .contenedor-ui {
+.contenedor-ui {
   background-color: #f6f6f6;
 }
 
