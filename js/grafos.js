@@ -775,6 +775,177 @@ var Grafos = (function() {
     GrafoPonderado.prototype = Object.create(Grafo.prototype);
     GrafoPonderado.constructor = GrafoPonderado;
 
+    /*
+     * GrafoPonderado: métodos públicos "estáticos":
+     * --------------------------------------------
+     */
+    GrafoPonderado.Dijkstra = function(grafo, origen, destino) {
+      // Antes de comenzar, se hace comprobación de errores y casos especiales.
+      if (grafo === undefined || origen === undefined || destino === undefined) {
+        // No está presente uno de los tres parámetros requeridos.
+        return undefined;
+      } else if (!grafo.nodoEnGrafo(origen) || !grafo.nodoEnGrafo(destino)) {
+        // Alguno de los dos nodos no hace parte de este grafo.
+        return undefined;
+      } else if (origen === destino) {
+        // Nodo origen es nodo destino. Esto resulta en un arbol especial.
+        var r = new GrafoPonderado();
+        r.rutaHaciaDestino = true;
+        r.pesoTotal = 0;
+        r.setNodos(grafo.getNodos());
+        return r;
+      }
+
+      var nodosGrafo = grafo.getNodos(); // Arreglo de nodos en el Grafo, intacto.
+      var noVisitados = nodosGrafo.slice(); // Arreglo de nodos no visitados es una copia del listado de referencias a Nodos original del Grafo y será modificado sin alterar el listado de nodos originales del Grafo
+
+      var rutaNodo = new Array(noVisitados.length); // Arreglo que contiene referencia al nodo en el camino final con la distancia mas baja
+      var rutaDistancia = new Array(noVisitados.length); // contiene la distancia mínima desde origen hasta rutaNodo[i]. Comparten índices los dos listados
+      var rutaAnterior = new Array(noVisitados.length); // Contiene el índice (en estos tres arreglos) del nodo anterio en esta ruta.
+      var rutaArcoDireccionado = new Array(noVisitados.length); // Es true si el arco del anterior nodo hacia este nodo es dirigido; undefined si no hay nodo anterior
+      var rutaArcoPeso = new Array(noVisitados.length); // Peso delarco hacia el nodo anterior; no confundir con el peso total hacia este nodo desde origen.
+      var rutaIteracion = new Array(noVisitados.length);
+
+      // Contendrá la información regresada por la función. el resultado es un nuevo Grafo.
+      var resultado;
+      var nodoResultado1, nodoResultado2, arcoResultado, nodosResultado, nodoResultadoDestino;
+      var j;
+
+      // auxiliares
+      var i;
+      var distanciaMinima;
+      var nodoDistanciaMinima;
+      var nodoActual;
+      var nodoVecino;
+      var arcoVecino;
+      var pesoArcoVecino;
+      var distanciaNodoActual;
+      var arcosVecinosNodoActual;
+      var distanciaSiguienteNodo;
+      var nodoSiguiente;
+      var arcoAnteriorEsDireccionado;
+      var indiceAnterior;
+      var pesoArcoAnterior;
+      var iteracionAnterior;
+
+      // Se inicializa el listado de información de ruta mas corta a valores intencionalmente fuera del alcance del valor de un Nodo regular.. Con esto se marca como "no visitado o no al alcance"
+      for (i in nodosGrafo) {
+        rutaNodo[i] = nodosGrafo[i];
+        rutaDistancia[i] = Infinity;
+        rutaAnterior[i] = -1;
+        rutaArcoDireccionado[i] = undefined;
+        rutaArcoPeso[i] = Infinity;
+        rutaIteracion[i] = Infinity;
+      }
+
+      // Esto causará que en el siguiente while el nodo origen sea seleccionado primero.
+      i = nodosGrafo.indexOf(origen);
+      rutaDistancia[i] = 0;
+      rutaIteracion[i] = 0;
+
+      // Se buscan rutas ideales mientras queden nodos por visitar.
+      while (noVisitados.length > 0) {
+        // Se parte desde el nodo no visitado con la distancia mínima. en ruta. Primero hay que encontrarlo
+        distanciaMinima = Infinity;
+        nodoDistanciaMinima = -1;
+
+        // Por cada nodo en arreglo de nodos no visitados
+        for (i in noVisitados) {
+          // Se compara su correspondiente distancia mínima en rutaDistancia con la distamciaMinima mas baja encontrada hasta ahora
+          nodoActual = nodosGrafo.indexOf(noVisitados[i]);
+          distanciaNodoActual = rutaDistancia[nodoActual];
+
+          if (distanciaNodoActual < distanciaMinima) {
+            // Nodo con distancia mas baja encontrado. Se continúa busqueda exhaustiva.
+            distanciaMinima = distanciaNodoActual;
+            nodoDistanciaMinima = nodoActual;
+
+          }
+        }
+
+        // Si no se encontró un siguiente nodo por visitar, entonces esto indica que no hay ruta hacia el nodo destino; o que la ruta fue encontrada y los demás nodos por procesar no tienen ruta hacia otros nodos (están "desconectados")
+        if (nodoDistanciaMinima < 0) {
+          break;
+        }
+
+        // Se marca este nodo con distancia mas baja como un nodo visitado; se hace eliminándolo de noVisitados.
+        //noVisitados.splice(noVisitados.indexOfnodosGrafo[nodoDistanciaMinima], 1);
+        noVisitados.splice(noVisitados.indexOf(nodosGrafo[nodoDistanciaMinima]), 1);
+
+        // Se actualizan las distancia mínimas de todos los vecinos del nodo actual, seleccionado (nodoDistanciaMinima) que todavía estén en el listado de nodos noVisitados
+        arcosVecinosNodoActual = nodosGrafo[nodoDistanciaMinima].getArcosOrigen(); // arcos en donde este nodo es el nodo *origen*
+
+        for (i in arcosVecinosNodoActual) {
+          arcoVecino = arcosVecinosNodoActual[i];
+          nodoVecino = arcoVecino.getDestino(); // el nodo en el otro extremo
+          pesoArcoVecino = arcoVecino.getPeso();
+
+          // Si este vecino actual está en el listado de nodos noVisitados
+          nodoActual = noVisitados.indexOf(nodoVecino);
+
+          if (nodoActual > -1) { // porque -1 significa "no encontrado" para indexOf
+            distanciaSiguienteNodo = distanciaMinima + pesoArcoVecino;
+            nodoSiguiente = nodosGrafo.indexOf(nodoVecino);
+
+            // Si la distancia total del siguiente nodo vecino es menor que su distancia registrada, se actualiza su información en arreglos de camino.
+            if (distanciaSiguienteNodo < rutaDistancia[nodoSiguiente]) {
+              rutaNodo[nodoSiguiente] = nodosGrafo[nodoSiguiente];
+              rutaDistancia[nodoSiguiente] = distanciaSiguienteNodo;
+              rutaAnterior[nodoSiguiente] = nodoDistanciaMinima;
+              rutaArcoDireccionado[nodoSiguiente] = arcoVecino.isDireccionado();
+              rutaArcoPeso[nodoSiguiente] = pesoArcoVecino;
+              rutaIteracion[nodoSiguiente] = rutaIteracion[nodoDistanciaMinima] + 1;
+            }
+          }
+        }
+
+      }
+
+      // Se presenta el resultado a manera de un nuevo Grafo con info. adicionada.
+      resultado = new GrafoPonderado();
+      resultado.rutaHaciaDestino = false;
+      resultado.pesoTotal = Infinity;
+
+      i = nodosGrafo.indexOf(destino);
+
+      if (Number.isFinite(rutaDistancia[i])) {
+        // Si la distancia total hacia el destino no es Infinity, entonces existe una ruta hacia el nodo destino.
+        resultado.rutaHaciaDestino = true;
+        resultado.pesoTotal = rutaDistancia[i];
+      }
+
+      // Se agregan todos los nodos al Grafo de resultados. Se adicionan datos colectados en el proceso.
+      for (i in rutaNodo) {
+        nodoResultado1 = resultado.insertarNodo(rutaNodo[i].getValor());
+        nodoResultado1.distancia = rutaDistancia[i];
+        nodoResultado1.anterior = rutaAnterior[i];
+        nodoResultado1.arcoDireccionado = rutaArcoDireccionado[i];
+        nodoResultado1.arcoPeso = rutaArcoPeso[i];
+        nodoResultado1.iteracion = rutaIteracion[i];
+      }
+
+      if (resultado.rutaHaciaDestino) {
+        // Se agregan los arcos del camino únicamente, sí hay ruta hacia el destino
+        nodosResultado = resultado.getNodos();
+        nodoResultado1 = nodosResultado[nodosGrafo.indexOf(destino)];
+        imprimir("DBG: " + nodoResultado1);
+
+        while (true) {
+          nodoResultado2 = nodosResultado[nodoResultado1.anterior];
+
+          if (nodoResultado2 === undefined) {
+            break;
+          }
+
+          arcoResultado = resultado.crearArcoPonderado(nodoResultado2, nodoResultado1, nodoResultado1.arcoDireccionado, nodoResultado1.arcoPeso);
+          resultado.insertarArcoPonderadoObjeto(arcoResultado);
+          nodoResultado1 = nodoResultado2;
+        }
+      }
+
+      return resultado;
+    };
+
     // ------------------------------------------------------------------------
 
     /**
@@ -861,13 +1032,34 @@ var Grafos = (function() {
         /**
          * Regresa arreglo de objetos Arco en donde este Nodo es destino.
          * Usar con cuidado.
+         *
+         * Si digrafo es true, entonces sólo se regresan Arcos no direccionados
+         * en donde este nodo es el nodo destino. En este caso, se regresa
+         * un nuevo listado filtrado; no el listado intacto interno de este
+         * objeto.
+         *
+         * Usar con cuidado
          */
-        this.getArcosDestino = function() {
-            return arcosDestino;
+        this.getArcosDestino = function(digrafo) {
+            var resultado;
+            var i;
+
+            if (digrafo) {
+              for (i in arcosDestino) {
+                if (!arcosDestino[i].isDireccionado()) {
+                  resultado.push(arcosDestino[i]);
+                }
+              }
+            } else {
+              return arcosDestino;
+            }
+
+            return resultado;
         };
 
         /**
          * Sobreescribe arreglo de objetos Arco en donde Nodo es destino.
+         *
          * Usar con cuidado.
          */
         this.setArcosDestino = function(valorDestino) {
@@ -898,8 +1090,13 @@ var Grafos = (function() {
          * Regresa el índice de un Arco en el arreglo de Arcos en donde este
          * Nodo es el nodo destino y otro es el Nodo origen si y solo si el
          * listado contiene dicho Arco. Si no, regresa -1.
+         *
+         * Si digrafo es true (es opcional), entonces si se encuentra un
+         * arco con los criterios anteriores pero que tiene su propiedad
+         * direccionado puesta en true, entonces la función regresa -1, no
+         * el índice del Arco encontrado.
          */
-        this.getArcoDestino = function(otro) {
+        this.getArcoDestino = function(otro, digrafo) {
           var aux;
           var i;
 
@@ -907,12 +1104,52 @@ var Grafos = (function() {
             aux = arcosDestino[i];
 
             if (aux.getOrigen().comparar(otro)) {
+              if (digrafo && aux.isDireccionado()) {
+                break;
+              }
+
               return i;
             }
           }
 
           return -1;
         };
+
+        /**
+         * Regresa un listado de Nodos encontrados como destinos en todos los
+         * Arcos en donde este Nodo es el Nodo origen.
+         */
+        this.getNodosDestino = function() {
+          var resultado = [];
+          var i;
+
+          for (i in arcosOrigen) {
+            resultado.push(arcosOrigen[i].getDestino());
+          }
+
+          return resultado;
+        };
+
+        /**
+         * Regresa un listado de Nodos encontrados que tengan Arcos en donde
+         * este Nodo es el Nodo destino.
+         *
+         * Si el parámetro digrafo es true, entonces las direcciones de los
+         * Arcos son tenidas en cuenta. No figurarán en el resultado aquellos
+         * Nodos que tengan Arcos direccionados hacia este Nodo.
+         */
+         this.getNodosOrigen = function(digrafo) {
+           var resultado = [];
+           var i;
+
+           for (i in arcosDestino) {
+             if ((digrafo && !arcosDestino[i].isDireccionado()) || !digrafo) {
+               resultado.push(arcosDestino[i].getOrigen());
+             }
+           }
+
+           return resultado;
+         };
 
         /**
          * Arega un Arco al arreglo de Arcos en donde este Nodo es origen.

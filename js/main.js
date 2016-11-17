@@ -8,11 +8,6 @@ var stdout = window.document.getElementById("stdout");
 var imprimir = function(input) {
     stdout.innerHTML += input + "\n";
 };
-var origLog = window.console.log;
-window.console.log = imprimir;
-var log = imprimir;
-var l = imprimir;
-var d = imprimir;
 
 var entradaValorNodo = window.document.getElementById("entradaValorNodo");
 var entradaArcoNodo1 = window.document.getElementById("entradaArcoNodo1");
@@ -23,12 +18,15 @@ var entradaDibujarPesoArcos = window.document.getElementById("entradaDibujarPeso
 var entradaDibujarNombresNodos = window.document.getElementById("entradaDibujarNombresNodos");
 var entradaDibujarArcos = window.document.getElementById("entradaDibujarArcos");
 var entradaDibujarFlechasArcos = window.document.getElementById("entradaDibujarFlechasArcos");
+var entradaAlgoritmoOrigen = window.document.getElementById("entradaAlgoritmoOrigen");
+var entradaAlgoritmoDestino = window.document.getElementById("entradaAlgoritmoDestino");
 
 var accionInsertarNodo = window.document.getElementById("accionInsertarNodo");
 var accionEliminarNodo = window.document.getElementById("accionEliminarNodo");
 var accionInsertarArco = window.document.getElementById("accionInsertarArco");
 var accionEliminarArco = window.document.getElementById("accionEliminarArco");
 var accionEliminarGrafo = window.document.getElementById("accionEliminarGrafo");
+var accionDijkstra = window.document.getElementById("accionDijkstra");
 var accionRedibujar = window.document.getElementById("accionRedibujar");
 
 var accionLimpiar = window.document.getElementById("accionLimpiar");
@@ -49,7 +47,7 @@ accionInsertarNodo.addEventListener("click", function() {
     return;
   }
 
-  visualizar();
+  visualizar(grafo);
 });
 
 accionEliminarNodo.addEventListener("click", function() {
@@ -67,7 +65,7 @@ accionEliminarNodo.addEventListener("click", function() {
     return;
   }
 
-  visualizar();
+  visualizar(grafo);
 });
 
 accionInsertarArco.addEventListener("click", function() {
@@ -115,7 +113,7 @@ accionInsertarArco.addEventListener("click", function() {
     imprimir("Arco entre Nodos '" + origen + "' y '" + destino + "' fue convertido en un Arco no direccionado.");
   }
 
-  visualizar();
+  visualizar(grafo);
 });
 
 accionEliminarArco.addEventListener("click", function() {
@@ -150,7 +148,7 @@ accionEliminarArco.addEventListener("click", function() {
     return;
   }
 
-  visualizar();
+  visualizar(grafo);
 });
 
 accionEliminarGrafo.addEventListener("click", function(){
@@ -159,13 +157,45 @@ accionEliminarGrafo.addEventListener("click", function(){
   } else if (window.confirm("Proceder a eliminar el Grafo?\nEsta operación es irreversible.")) {
     grafo = new Grafos.GrafoPonderado();
     imprimir("Grafo eliminado.\nNuevo Grafo creado exitosamente.");
-    visualizar();
+    visualizar(grafo);
   }
+});
+
+accionDijkstra.addEventListener("click", function(){
+  var origen = entradaAlgoritmoOrigen.value.trim();
+  var destino = entradaAlgoritmoDestino.value.trim();
+
+  var nodoOrigen;
+  var nodoDestino;
+
+  if (grafo === undefined || grafo.vacio()) {
+    imprimir("Error. No se puede ejecutar el algoritmo Dikstra sobre un Grafo vacío.");
+    return;
+  } else if (origen === undefined || origen === "") {
+    imprimir("Error. El algoritmo de Dijkstra requiere un Nodo origen.");
+    return;
+  } else if (destino === undefined || destino === "") {
+    imprimir("Error. El algoritmo de Dijkstra requiere un Nodo destino.");
+    return;
+   } else if ((nodoOrigen = grafo.getNodo(origen)) === undefined) {
+     imprimir("Error. Nodo origen '" + origen + "' no existe.");
+     return;
+   } else if ((nodoDestino = grafo.getNodo(destino)) === undefined) {
+     imprimir("Error. Nodo destino '" + destino + "' no existe.");
+     return;
+   }
+
+  var resultado = Grafos.GrafoPonderado.Dijkstra(grafo, nodoOrigen, nodoDestino);
+  visualizar(resultado);
+
+  imprimir("GRAFO (DIJKSTRA):\n=================\n" + resultado);
+  imprimir("Ruta hacia nodo destino? " + (resultado.rutaHaciaDestino ? "Sí" : "No"));
+  imprimir("Distancia total: " + (!Number.isFinite(resultado.pesoTotal) ? resultado.pesoTotal : "Infinidad"));
 });
 
 accionRedibujar.addEventListener("click", function(){
   imprimir("Grafo redibujado exitosamente.");
-  visualizar();
+  visualizar(grafo);
 });
 
 accionLimpiar.addEventListener("click", function(){
@@ -180,7 +210,7 @@ accionDepurar.addEventListener("click", function(){
   imprimir("GRAFO:\n======\n" + grafo);
 });
 
-var visualizar = function() {
+var visualizar = function(g) {
   var canvas = window.document.getElementById("grafo");
   var contenedorCanvas = canvas.parentNode;
 
@@ -202,12 +232,12 @@ var visualizar = function() {
   canvas.setAttribute("id", "grafo");
   contenedorCanvas.appendChild(canvas);
 
-  if (grafo === undefined || grafo.vacio()) {
+  if (g === undefined || g.vacio()) {
     return;
   }
 
-  nodos = grafo.getNodos();
-  arcos = grafo.getArcos();
+  nodos = g.getNodos();
+  arcos = g.getArcos();
   visNodos = new vis.DataSet();
   visArcos = new vis.DataSet();
 
