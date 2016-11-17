@@ -12,3 +12,5 @@ La implementación de Grafo, Nodo, Arco y del algoritmo de Dijkstra se encuentra
 El resultado del algorimo de Dijkstra en esta implementación es un Grafo entero, en donde sólo hay arcos entre todos los nodos intermedios en la ruta mas corta desde el nodo origen hasta el nodo destino.
 
 La visualización fue hecha con ayuda de [vis.js](http://visjs.org/).
+
+[Versión "en vivo", en linea](http://fabianpineda.xyz/universidad/estructurasdedatos/).
