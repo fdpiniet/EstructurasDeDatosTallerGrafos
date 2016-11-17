@@ -186,11 +186,15 @@ accionDijkstra.addEventListener("click", function(){
    }
 
   var resultado = Grafos.GrafoPonderado.Dijkstra(grafo, nodoOrigen, nodoDestino);
+  if (stdout.innerHTML !== "") {
+    imprimir(""); /// mi función imprimir agrega \n al final de cada string
+  }
+
   visualizar(resultado);
 
   imprimir("GRAFO (DIJKSTRA):\n=================\n" + resultado);
   imprimir("Ruta hacia nodo destino? " + (resultado.rutaHaciaDestino ? "Sí" : "No"));
-  imprimir("Distancia total: " + (!Number.isFinite(resultado.pesoTotal) ? resultado.pesoTotal : "Infinidad"));
+  imprimir("Distancia total: " + (Number.isFinite(resultado.pesoTotal) ? resultado.pesoTotal : "Infinidad"));
 });
 
 accionRedibujar.addEventListener("click", function(){
@@ -204,7 +208,7 @@ accionLimpiar.addEventListener("click", function(){
 
 accionDepurar.addEventListener("click", function(){
   if (stdout.innerHTML !== "") {
-    imprimir("");
+    imprimir(""); // imprimir agrega \n al final de string
   }
 
   imprimir("GRAFO:\n======\n" + grafo);

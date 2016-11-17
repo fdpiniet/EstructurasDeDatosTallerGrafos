@@ -873,11 +873,13 @@ var Grafos = (function() {
         noVisitados.splice(noVisitados.indexOf(nodosGrafo[nodoDistanciaMinima]), 1);
 
         // Se actualizan las distancia mínimas de todos los vecinos del nodo actual, seleccionado (nodoDistanciaMinima) que todavía estén en el listado de nodos noVisitados
-        arcosVecinosNodoActual = nodosGrafo[nodoDistanciaMinima].getArcosOrigen(); // arcos en donde este nodo es el nodo *origen*
+        //arcosVecinosNodoActual = nodosGrafo[nodoDistanciaMinima].getArcosOrigen(); // arcos en donde este nodo es el nodo *origen*
+        arcosVecinosNodoActual = nodosGrafo[nodoDistanciaMinima].getArcosVecinos();
 
         for (i in arcosVecinosNodoActual) {
           arcoVecino = arcosVecinosNodoActual[i];
-          nodoVecino = arcoVecino.getDestino(); // el nodo en el otro extremo
+          //nodoVecino = arcoVecino.getDestino(); // el nodo en el otro extremo
+          nodoVecino = nodosGrafo[nodoDistanciaMinima].getVecino(arcoVecino, true);
           pesoArcoVecino = arcoVecino.getPeso();
 
           // Si este vecino actual está en el listado de nodos noVisitados
@@ -928,7 +930,6 @@ var Grafos = (function() {
         // Se agregan los arcos del camino únicamente, sí hay ruta hacia el destino
         nodosResultado = resultado.getNodos();
         nodoResultado1 = nodosResultado[nodosGrafo.indexOf(destino)];
-        imprimir("DBG: " + nodoResultado1);
 
         while (true) {
           nodoResultado2 = nodosResultado[nodoResultado1.anterior];
@@ -1143,13 +1144,96 @@ var Grafos = (function() {
            var i;
 
            for (i in arcosDestino) {
-             if ((digrafo && !arcosDestino[i].isDireccionado()) || !digrafo) {
+             if (!digrafo || (digrafo && !arcosDestino[i].isDireccionado())) {
                resultado.push(arcosDestino[i].getOrigen());
              }
            }
 
            return resultado;
          };
+
+		/**
+		 * Regresa un listado de Arcos hacia todos los vecinos de este nodo.
+		 *
+		 * Si digrafo es true, entonces no se tendrán en cuenta todos los arcos
+		 * en donde este nodo es el nodo destino y que son dirigidos.
+		 */
+		 this.getArcosVecinos = function(digrafo) {
+			var resultado = arcosOrigen.slice();
+			var destinos = this.getArcosDestino(digrafo);
+
+			var i;
+
+			for (i in destinos) {
+				if (resultado.indexOf(destinos[i]) < 0) {
+					resultado.push(destinos[i]);
+				}
+			}
+
+			return resultado;
+		 };
+
+		/**
+		 * Regresa un listado de Nodos vecinos enconrados.
+		 *
+		 * Si digrafo es true, entonces por cada vecino que esté conectado a
+		 * este nodo en donde este nodo sea el nodo destino y que sea dirigido
+		 * no será incluido en el listado de vecinos.
+		 */
+		 this.getNodosVecinos = function(digrafo) {
+			var resultado = getNodosDestino().slice();
+			var origenes = getNodosOrigen(digrafo);
+
+			var i;
+
+			for (i in origenes) {
+				if (resultado.indexOf(origenes[i]) < 0) {
+					resultado.push(origenes[i]);
+				}
+			}
+
+			return resultado;
+		 };
+
+		 /**
+		  * Regresa el otro nodo en este arco; el nodo vecino en este arco.
+      *
+      * Si digrafo es true, si este nodo es el nodo destino entonces la
+      * funcíón regresará undefined. TO-DO
+		  */
+		  this.getVecino = function(arco, digrafo){
+        if (arco === undefined) {
+				  return undefined;
+			  }
+
+        var i;
+
+			  for (i in arcosOrigen) {
+				  if (arcosOrigen[i].comparar(arco, true)) {
+					  if (arco.getOrigen() === this) {
+						  return arco.getDestino();
+					  } else if (arco.getDestino() === this) {
+              if (!digrafo || (digrafo && !arco.isDireccionado())) {
+                return arco.getOrigen();
+              }
+					  }
+				  }
+			  }
+
+			  for (i in arcosDestino) {
+				  if (arcosDestino[i].comparar(arco, true)) {
+					  if (arco.getDestino() === this) {
+              if (!digrafo || (digrafo && !arco.isDireccionado())) {
+                return arco.getOrigen();
+              }
+					  } else {
+						  return arco.getDestino();
+					  }
+				  }
+			  }
+
+			  return undefined;
+		  };
 
         /**
          * Arega un Arco al arreglo de Arcos en donde este Nodo es origen.
